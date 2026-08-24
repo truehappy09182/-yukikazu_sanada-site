@@ -1,5 +1,6 @@
 import json
 import os
+import socket
 import urllib.request
 
 from dotenv import load_dotenv
@@ -8,6 +9,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 
 load_dotenv()
+
+# RenderのランタイムはIPv6での外部接続に対応していないため、
+# 名前解決をIPv4のみに強制する（未対応のままだと ENETUNREACH で失敗する）
+_original_getaddrinfo = socket.getaddrinfo
+
+
+def _getaddrinfo_ipv4_only(host, port, family=0, type=0, proto=0, flags=0):
+    return _original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+
+socket.getaddrinfo = _getaddrinfo_ipv4_only
 
 app = FastAPI(title="English Teacher Site API")
 
