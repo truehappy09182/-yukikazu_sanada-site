@@ -140,7 +140,7 @@ ACHIEVEMENTS = [
 
 CONTACT_MESSAGES: list[ContactMessage] = []
 
-CONTACT_NOTIFY_EMAIL = os.environ.get("CONTACT_NOTIFY_EMAIL", "masa09english@gmail.com")
+CONTACT_NOTIFY_EMAIL = os.environ.get("CONTACT_NOTIFY_EMAIL", "truehappy09182@gmail.com")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
