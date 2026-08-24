@@ -139,11 +139,12 @@ ACHIEVEMENTS = [
 
 CONTACT_MESSAGES: list[ContactMessage] = []
 
-CONTACT_NOTIFY_EMAIL = os.environ.get("CONTACT_NOTIFY_EMAIL", "truehappy09182@gmail.com")
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+CONTACT_NOTIFY_EMAIL = os.environ.get("CONTACT_NOTIFY_EMAIL", "truehappy09182@gmail.com").strip()
+RESEND_API_KEY = (os.environ.get("RESEND_API_KEY") or "").strip() or None
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev").strip()
 
 resend.api_key = RESEND_API_KEY
+print(f"CONTACT_NOTIFY_EMAIL = {CONTACT_NOTIFY_EMAIL!r}")
 
 
 def send_contact_notification(message: ContactMessage) -> None:
