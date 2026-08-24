@@ -1,6 +1,6 @@
+import json
 import os
-import smtplib
-from email.message import EmailMessage
+import urllib.request
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -129,35 +129,44 @@ ACHIEVEMENTS = [
 CONTACT_MESSAGES: list[ContactMessage] = []
 
 CONTACT_NOTIFY_EMAIL = os.environ.get("CONTACT_NOTIFY_EMAIL", "masa09english@gmail.com")
-SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USER = os.environ.get("SMTP_USER")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
 
 def send_contact_notification(message: ContactMessage) -> None:
-    if not SMTP_USER or not SMTP_PASSWORD:
+    if not RESEND_API_KEY:
         print(
-            "SMTP_USER / SMTP_PASSWORD が未設定のため、お問い合わせ通知メールの送信をスキップしました。"
+            "RESEND_API_KEY が未設定のため、お問い合わせ通知メールの送信をスキップしました。"
             " backend/.env を設定してください。"
         )
         return
 
-    email_msg = EmailMessage()
-    email_msg["Subject"] = f"【サイトお問い合わせ】{message.name} 様より"
-    email_msg["From"] = SMTP_USER
-    email_msg["To"] = CONTACT_NOTIFY_EMAIL
-    email_msg["Reply-To"] = message.email
-    email_msg.set_content(
-        f"お名前: {message.name}\n"
-        f"メールアドレス: {message.email}\n\n"
-        f"メッセージ:\n{message.message}\n"
-    )
+    payload = json.dumps(
+        {
+            "from": f"English Teacher Site <{RESEND_FROM_EMAIL}>",
+            "to": [CONTACT_NOTIFY_EMAIL],
+            "reply_to": message.email,
+            "subject": f"【サイトお問い合わせ】{message.name} 様より",
+            "text": (
+                f"お名前: {message.name}\n"
+                f"メールアドレス: {message.email}\n\n"
+                f"メッセージ:\n{message.message}\n"
+            ),
+        }
+    ).encode("utf-8")
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
-        smtp.starttls()
-        smtp.login(SMTP_USER, SMTP_PASSWORD)
-        smtp.send_message(email_msg)
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=10) as res:
+        if res.status >= 300:
+            raise RuntimeError(f"Resend API error: {res.status}")
 
 
 @app.get("/api/profile", response_model=Profile)

@@ -23,14 +23,15 @@ python -m venv venv
 #### お問い合わせ通知メールの設定
 
 お問い合わせフォームが送信されると `masa09english@gmail.com` 宛にメール通知が届くようになっています。
-送信には送信元となるSMTPアカウント（Gmailのアプリパスワードなど）が必要です。
+送信には [Resend](https://resend.com)（無料枠あり、クレジットカード不要）のAPIキーが必要です。
+SMTP（Gmailアプリパスワードなど）は使っていません — RenderなどのPaaS無料プランはSMTPポートの通信がブロック/ハングすることが多く、確実に送信できないためです。
 
 ```powershell
 cd backend
 copy .env.example .env
 ```
 
-`.env` を開いて `SMTP_USER` / `SMTP_PASSWORD` を実際の送信用アカウント情報に書き換えてください。
+`.env` を開いて `RESEND_API_KEY` を実際のAPIキーに書き換えてください。
 未設定のままでもフォーム送信自体は失敗せず、サーバーのログに「送信をスキップしました」と出るだけです。
 
 `.\venv\Scripts\python.exe` を直接指定する方法なら、`Activate.ps1` の
@@ -72,7 +73,7 @@ GitHub で空リポジトリを作成し、指示されたリモート追加・p
 3. 環境変数を設定
    - `FRONTEND_ORIGINS` … 後述のVercelのURL（例: `https://your-site.vercel.app`）※フロントエンドを先にデプロイしてから設定でも可
    - `CONTACT_NOTIFY_EMAIL` … 通知を受け取りたいメールアドレス
-   - `SMTP_USER` / `SMTP_PASSWORD` … Gmailのアプリパスワードなど（未設定でもフォーム送信自体は失敗しない）
+   - `RESEND_API_KEY` … [resend.com](https://resend.com) で発行したAPIキー（未設定でもフォーム送信自体は失敗しない）
 4. デプロイ完了後に発行される URL（例: `https://english-teacher-site-api.onrender.com`）を控える
 
 **無料プランの制約:** 一定時間アクセスがないとスリープし、次のリクエストで初回30〜50秒程度の遅延が発生します。この規模のサイトであれば許容範囲です。
