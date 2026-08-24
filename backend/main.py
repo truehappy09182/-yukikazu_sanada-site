@@ -174,6 +174,7 @@ def send_contact_notification(message: ContactMessage) -> None:
         headers={
             "Authorization": f"Bearer {RESEND_API_KEY}",
             "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (compatible; english-teacher-site/1.0)",
         },
         method="POST",
     )
