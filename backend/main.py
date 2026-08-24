@@ -1,9 +1,7 @@
-import json
 import os
 import socket
-import urllib.error
-import urllib.request
 
+import resend
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -145,6 +143,8 @@ CONTACT_NOTIFY_EMAIL = os.environ.get("CONTACT_NOTIFY_EMAIL", "truehappy09182@gm
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
+resend.api_key = RESEND_API_KEY
+
 
 def send_contact_notification(message: ContactMessage) -> None:
     if not RESEND_API_KEY:
@@ -154,7 +154,7 @@ def send_contact_notification(message: ContactMessage) -> None:
         )
         return
 
-    payload = json.dumps(
+    resend.Emails.send(
         {
             "from": f"English Teacher Site <{RESEND_FROM_EMAIL}>",
             "to": [CONTACT_NOTIFY_EMAIL],
@@ -166,21 +166,7 @@ def send_contact_notification(message: ContactMessage) -> None:
                 f"メッセージ:\n{message.message}\n"
             ),
         }
-    ).encode("utf-8")
-
-    req = urllib.request.Request(
-        "https://api.resend.com/emails",
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {RESEND_API_KEY}",
-            "Content-Type": "application/json",
-            "User-Agent": "Mozilla/5.0 (compatible; english-teacher-site/1.0)",
-        },
-        method="POST",
     )
-    with urllib.request.urlopen(req, timeout=10) as res:
-        if res.status >= 300:
-            raise RuntimeError(f"Resend API error: {res.status}")
 
 
 @app.get("/api/profile", response_model=Profile)
@@ -210,9 +196,6 @@ def post_contact(message: ContactMessage):
     CONTACT_MESSAGES.append(message)
     try:
         send_contact_notification(message)
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")
-        print(f"お問い合わせ通知メールの送信に失敗しました: {exc} - {detail}")
     except Exception as exc:
         print(f"お問い合わせ通知メールの送信に失敗しました: {exc}")
     return {"ok": True}
