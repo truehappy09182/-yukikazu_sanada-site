@@ -1,6 +1,7 @@
 import json
 import os
 import socket
+import urllib.error
 import urllib.request
 
 from dotenv import load_dotenv
@@ -208,6 +209,9 @@ def post_contact(message: ContactMessage):
     CONTACT_MESSAGES.append(message)
     try:
         send_contact_notification(message)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        print(f"お問い合わせ通知メールの送信に失敗しました: {exc} - {detail}")
     except Exception as exc:
         print(f"お問い合わせ通知メールの送信に失敗しました: {exc}")
     return {"ok": True}
